@@ -202,20 +202,41 @@ streznik.post('/prijava', function(zahteva, odgovor) {
   form.parse(zahteva, function (napaka1, polja, datoteke) {
     var napaka2 = false;
     try {
+      var ime = polja.FirstName;
+      var priimek = polja.LastName;
+      var podjetje = polja.Company;
+      var naslov = polja.Address;
+      var mesto = polja.City;
+      var okrozje = polja.State;
+      var drzava = polja.Country;
+      var postnaSt = polja.PostalCode;
+      var telefon = polja.Phone;
+      var faks = polja.Fax;
+      var eposta = polja.Email;
+      
       var stmt = pb.prepare("\
         INSERT INTO Customer \
     	  (FirstName, LastName, Company, \
     	  Address, City, State, Country, PostalCode, \
     	  Phone, Fax, Email, SupportRepId) \
         VALUES (?,?,?,?,?,?,?,?,?,?,?,?)");
-      //TODO: add fields and finalize
-      //stmt.run("", "", "", "", "", "", "", "", "", "", "", 3); 
-      //stmt.finalize();
+
+      stmt.run(ime, priimek, podjetje, naslov, mesto, okrozje, drzava, postnaSt, telefon, faks, eposta, 3); 
+      stmt.finalize();
     } catch (err) {
       napaka2 = true;
     }
   
-    odgovor.end();
+
+      vrniRacune(function(napaka3, racuni) {
+          vrniStranke(function(napaka4, stranke) {
+            if((napaka1 == true) || (napaka2 == true)){
+              odgovor.render('prijava', {sporocilo: 'Prišlo je do napake pri registraciji nove stranke. Prosim preverite vnešene podatke in poskusite znova.', seznamStrank: stranke, seznamRacunov: racuni}); 
+            } else {
+              odgovor.render('prijava', {sporocilo: 'Stranka je bila uspešno registrirana.', seznamStrank: stranke, seznamRacunov: racuni}); 
+            }
+          });
+      });
   });
 })
 
